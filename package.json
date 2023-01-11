@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start": "npx @google-cloud/functions-framework --target=main"
+        "start": "functions-framework --target=main"
     },
     "author": "",
     "license": "ISC",
