@@ -1,8 +1,6 @@
-var http = require('http');
-http.createServer(function (req, res) {
-    console.log(`Just got a request at ${req.url}!`)
-    res.end();
-}).listen(process.env.PORT || 3000);
+exports.main = (req, res) => {
+  res.send('Hello, World!');
+};
 
 /*
 
