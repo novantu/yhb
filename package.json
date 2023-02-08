@@ -1,14 +1,18 @@
 {
-    "name": "habit-repeat-cloud-functions-firestore",
+    "name": "youth-habit-huilder-cloud-functions-firestore",
     "version": "1.0.0",
     "description": "",
+    "main": "index.js",
     "scripts": {
-        "start": "node index.js"
+        "start": "npx functions-framework --target=habitRepeat"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
         "@google-cloud/firestore": "4.13.0",
         "firebase-admin": "^10.2.0"
+    },
+    "devDependencies": {
+        "@google-cloud/functions-framework": "^3.1.3"
     }
 }
