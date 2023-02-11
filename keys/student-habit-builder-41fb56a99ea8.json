@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "student-habit-builder",
+  "private_key_id": "41fb56a99ea887d9879b00fedebe099954047ca5",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCwFl6JEumz0TqL\njIkiLS+fhcbkoAQ7x5xpMwBXDy4DEqbcZrqPGnogApI/r+Pc0YohjyGLAkrvRLeI\nULYp1sOTDck4Hpb0cbSrB6q6a2/7ghbwmKTIDNbcHzAnRQt263t7scrVW4hkSgG+\nC1Q3/HjSPRnlX3Iahc4daYanXOSW0pkc2oun1cQQqhdnVUOG6Y06P9AlCcq+/I3/\nWkZ25V2ztO8mT+9jdVq9QOEEdKjZWCl/a/bkzd9b5AnJkhgEOAza3tKEKqASV56j\nf/Utv4FGfP67CccBJR3TYmNYaBHS8xF+tEkkaSPMPJRFqduGmqm4Cg1vp75P6OKY\n51Gmf7TBAgMBAAECggEABbKLl4LRpfxQmSBQdZchsdcpws78pBSG1o6MZcS7d+T8\nGiiGw8eXCP8cTUw7IrNy9TgE3VMTKp++En6ODleBF3p8NsEioEEnl9sVJpgAVRJ1\n/I3r0v87Wn7112dwAgaHhc6QYgvmo1wTp1sFfBRCsobAlj/a2MnYi/IUpcinKswS\n43cAHFlK7SecK9ErvzbHe0xTo0JVsYRStX7cQVW1XpY1h2Eur+0hTHWW1Wnd+czd\n9ZkdGLgm0gg3pyHP+t5Ekg87lOeLBY4SlDfvubhwJ8hEGAA2nrcEj7EkZuiKwHc+\nrQbD+AZwSL3xnlLhCdKhhxdXSH6seduFHgRW/i2TAwKBgQDXi9JWPO6mUC5540Zv\nde6QiXKPnIT6ryAsuNwOzTxFSbfWbCPiSyK/whRtWAQRFCpaoUkJ7gAWQKczIJlf\nEZVG98oY3qLKOmtTBR8OKWB5ohmEiyq6Wb4FX0mFv/o7FI28w/7aZRmhBsrROV0Q\nxBw3DNibYZzlMjIOTwtg3jiy1wKBgQDRIrOhfFwBoQd/Z0imBe5JhgcG/zIubWv0\n4pVtTU8wpPQ1kfHaYHqJ4zkXvX+Thkyuwj1mzAlrZpD2Xm1kDjEd22DTdygbu2uV\nxRHF60z/C0G/0Fb58zPA5tKm5nw/DN5IFKgnPgYh3d0qLSNHYp3qSBe++jAn8lBG\nfbdb/C56JwKBgH2j4eokwFMvX7fqs67axkF37NArQxRAqneHFbaHCT+2FbOl+1C3\nzTyLa47FBDHUWE/VvZZNJb3S1+MkeGIDBMmGPEY82BUa8l5FGPIPSk38H/WzjSds\nkifdgCS3X6u6clf6wv4YelTzeZt1XXsdZPjtwwDnaCXtGWJfztkbD1+nAoGAak77\nhOEUW/ehOhAki9CD+nfY5qOevJ7+u7LaRn9/+7g+M2UGzf0xDRqmEP1Q9orUPBmc\n4L5jI2c11SbW8H+OVCEKLTRq/P3eiHluuW8M6rCsMXcUX2ZTLoGnHxQWoG5IJ9fo\nSlpq/5gqLqBXSJhGsasH9xpylDvGtq59IJMmhQ0CgYEAkR0pAjq0rWDtWT8LuJfs\nfp0NiiCsJy/Pi93N9R87uztONdPNjR8TnhJOtucEQHCvgWoN8yBJppP8CeSrYlVk\n35DbU+zArqE8VfvLOIn5CmHntrzWmnlO9miRk4P6pu3zZZYJUe9+wp4B+Q2vLWRz\nLmYy/FXnmHuyW57i21KPr9I=\n-----END PRIVATE KEY-----\n",
+  "client_email": "rest-service-account@student-habit-builder.iam.gserviceaccount.com",
+  "client_id": "102220119130040801744",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/rest-service-account%40student-habit-builder.iam.gserviceaccount.com"
+}

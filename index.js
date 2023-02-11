@@ -1,22 +1,13 @@
-// var http = require('http');
-// http.createServer(function (req, res) {
-//     console.log(`Just got a request at ${req.url}!`)
-//     res.write('Yo!');
-//     res.end();
-// }).listen(process.env.PORT || 3000);
-
 const Firestore = require('@google-cloud/firestore');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
 
 const firestore = new Firestore({
-   projectId: 'student-habit-builder',
-   timestampsInSnapshots: true
-   // NOTE: Don't hardcode your project credentials here.
-   // If you have to, export the following to your shell:
-   //   GOOGLE_APPLICATION_CREDENTIALS=<path>
-   // keyFilename: '/cred/cloud-functions-firestore-000000000000.json',
+    projectId: 'student-habit-builder',
+    timestampsInSnapshots: true,
+    // GOOGLE_APPLICATION_CREDENTIALS: './keys',
+    keyFilename: './keys/student-habit-builder-41fb56a99ea8.json',
 });
 
 
@@ -215,153 +206,156 @@ exports.habitRepeat = async (req, res) => {
        });
    }
 
-
-   if (req.method === 'POST') {
-       if (action === 'habit-repeat') {
-           if (data.today) {
-               Today = new Date(data.today);
-           }
-
-
-           // get all habit
-           const habitSnapshot = await firestore.collection('habit').where('endDate', '>=', Today).get();
-           if (habitSnapshot.empty) {
-               console.log('No matching documents.');
-               return;
-           }
+    try{
+    if (req.method === 'POST') {
+        if (action === 'habit-repeat') {
+            if (data.today) {
+                Today = new Date(data.today);
+            }
 
 
-           const latestHabitDate = {};
-           habitSnapshot.forEach(doc => {
-               const habit = doc.data();
-               if (!habit) {
-                   return res.status(404).send({
-                       error: 'Found document is empty'
-                   });
-               }
+            // get all habit
+            const habitSnapshot = await firestore.collection('habit').where('endDate', '>=', Today).get();
+            if (habitSnapshot.empty) {
+                console.log('No matching documents.');
+                return;
+            }
 
 
-               const { endOn, endDate } = habit;
-               if (endOn === 'never' || isFuture(endDate)) {
-                   const historyData = getHistoryData(habit);
-                   if (historyData && historyData.length) {
-                       historyData.forEach(history => {
-                           if (history) batchSet('history', { ...history, habitId: doc.id });
-                       });
-                       latestHabitDate[doc.id] = historyData[historyData.length - 1];
-                   }
-               }
+            const latestHabitDate = {};
+            habitSnapshot.forEach(doc => {
+                const habit = doc.data();
+                if (!habit) {
+                    return res.status(404).send({
+                        error: 'Found document is empty'
+                    });
+                }
 
 
-           });
+                const { endOn, endDate } = habit;
+                if (endOn === 'never' || isFuture(endDate)) {
+                    const historyData = getHistoryData(habit);
+                    if (historyData && historyData.length) {
+                        historyData.forEach(history => {
+                            if (history) batchSet('history', { ...history, habitId: doc.id });
+                        });
+                        latestHabitDate[doc.id] = historyData[historyData.length - 1];
+                    }
+                }
 
 
-           // update habit latestDate
-           for (const habitId in latestHabitDate) {
-               const lastestDate = latestHabitDate[habitId].startOn;
-               if (lastestDate) {
-                   batchSet('habit', { lastestDate }, habitId);
-               }
-           }
+            });
 
 
-           pushHistoryData();
+            // update habit latestDate
+            for (const habitId in latestHabitDate) {
+                const lastestDate = latestHabitDate[habitId].startOn;
+                if (lastestDate) {
+                    batchSet('habit', { lastestDate }, habitId);
+                }
+            }
 
 
-           return res.status(200).send({ ...data, result: `Committing batch of ${counter}` });
-       }
+            pushHistoryData();
 
 
-       else if (action === 'habit-reminder') {
-           const uids = {};
+            return res.status(200).send({ ...data, result: `Committing batch of ${counter}` });
+        }
 
 
-           // get reminder habit and child id
-           const historySnapshot = await firestore.collection('history').where('startOn', '==', Today).get();
-           if (historySnapshot.empty) {
-               console.log('No matching history documents.');
-               return;
-           }
-           // map task into user id
-           historySnapshot.forEach(doc => {
-               const history = doc.data();
-               const startOn = timestampToDate(history.startOn);
-               const reminderArr = history.reminder.split(" ");
-               const reminder = new Date(startOn);
-               const duration = parseInt(reminderArr[0]);
-               if (isNaN(duration)) {
-                   return;
-               }
-               if (reminderArr[1] === "minute") {
-                   reminder.setMinutes(reminder.getMinutes() - duration);
-               } else if (reminderArr[1] === "hour") {
-                   reminder.setHours(reminder.getHours() - duration)
-               }
-               reminder.setMilliseconds(0);
-               reminder.setSeconds(0);
-               const today = new Date(Today);
-               today.setMilliseconds(0);
-               today.setSeconds(0);
-               if (reminder.getTime() !== today.getTime()) {
-                   return;
-               }
-               uids[history.uid] = history;
-           });
+        else if (action === 'habit-reminder') {
+            const uids = {};
 
 
-           // get parent id
-           const parentSnapshot = await firestore.collection('parent_child').where('childId', 'in', Object.keys(uids)).get();
-           if (parentSnapshot.empty) {
-               console.log('No matching parent documents.');
-               return;
-           }
-           // map child task into parent id
-           parentSnapshot.forEach(doc => {
-               const user = doc.data();
-               uids[user.uid] = uids[user.childUid];
-           });
+            // get reminder habit and child id
+            const historySnapshot = await firestore.collection('history').where('startOn', '==', Today).get();
+            if (historySnapshot.empty) {
+                console.log('No matching history documents.');
+                return;
+            }
+            // map task into user id
+            historySnapshot.forEach(doc => {
+                const history = doc.data();
+                const startOn = timestampToDate(history.startOn);
+                const reminderArr = history.reminder.split(" ");
+                const reminder = new Date(startOn);
+                const duration = parseInt(reminderArr[0]);
+                if (isNaN(duration)) {
+                    return;
+                }
+                if (reminderArr[1] === "minute") {
+                    reminder.setMinutes(reminder.getMinutes() - duration);
+                } else if (reminderArr[1] === "hour") {
+                    reminder.setHours(reminder.getHours() - duration)
+                }
+                reminder.setMilliseconds(0);
+                reminder.setSeconds(0);
+                const today = new Date(Today);
+                today.setMilliseconds(0);
+                today.setSeconds(0);
+                if (reminder.getTime() !== today.getTime()) {
+                    return;
+                }
+                uids[history.uid] = history;
+            });
 
 
-           // get both child and parent token
-           const userSnapshot = await firestore.collection('user').where('uid', 'in', Object.keys(uids)).get();
-           if (userSnapshot.empty) {
-               console.log('No matching user documents.');
-               return;
-           }
-           // map habit to user token
-           userSnapshot.forEach(doc => {
-               const user = doc.data();
-               if (user.token && uids[doc.id] && uids[doc.id].habitId) {
-                   sendBatchMessage({
-                       notification: { title: `It's time for habit!`, body: uids[doc.id].habit },
-                       tokens: user.token,
-                   });
-               }
-           });
-          
-           let result = '';
-           if (messages.length) {
-               admin.messaging().sendAll(messages)
-               .then((response) => {
-                   result = response.successCount + ' messages were sent successfully';
-                   console.log(result);
-               }).catch((error) => {
-                   console.log('Sent failed.\n');
-                   console.log(error);
-                   return res.status(500).send({
-                       error: 'Notification reminder is not sent - Internal Server Error'
-                   });
-               });
-           }
+            // get parent id
+            const parentSnapshot = await firestore.collection('parent_child').where('childId', 'in', Object.keys(uids)).get();
+            if (parentSnapshot.empty) {
+                console.log('No matching parent documents.');
+                return;
+            }
+            // map child task into parent id
+            parentSnapshot.forEach(doc => {
+                const user = doc.data();
+                uids[user.uid] = uids[user.childUid];
+            });
 
 
-           return res.status(200).send({ ...data, result });
-       }
+            // get both child and parent token
+            const userSnapshot = await firestore.collection('user').where('uid', 'in', Object.keys(uids)).get();
+            if (userSnapshot.empty) {
+                console.log('No matching user documents.');
+                return;
+            }
+            // map habit to user token
+            userSnapshot.forEach(doc => {
+                const user = doc.data();
+                if (user.token && uids[doc.id] && uids[doc.id].habitId) {
+                    sendBatchMessage({
+                        notification: { title: `It's time for habit!`, body: uids[doc.id].habit },
+                        tokens: user.token,
+                    });
+                }
+            });
+            
+            let result = '';
+            if (messages.length) {
+                admin.messaging().sendAll(messages)
+                .then((response) => {
+                    result = response.successCount + ' messages were sent successfully';
+                    console.log(result);
+                }).catch((error) => {
+                    console.log('Sent failed.\n');
+                    console.log(error);
+                    return res.status(500).send({
+                        error: 'Notification reminder is not sent - Internal Server Error'
+                    });
+                });
+            }
 
 
-       return res.status(404).send({
-           error: 'Not valid'
-       });
-   }
+            return res.status(200).send({ ...data, result });
+        }
+
+
+        return res.status(404).send({
+            error: 'Not valid'
+        });
+    }
+    } catch(e) {
+        console.error(e)
+    }
 };
 
