@@ -224,10 +224,12 @@ exports.habitRepeat = async (req, res) => {
             }
 
             else if (action === 'habit-reminder') {
-                const uids = {};
+                const today = new Date(Today);
+                today.setMilliseconds(0);
+                today.setSeconds(0);
 
                 // get reminder habit and child id
-                const historySnapshot = await firestore.collection('history').where('startOn', '==', Today).get();
+                const historySnapshot = await firestore.collection('history').where('startOn', '==', today).get();
                 if (historySnapshot.empty) {
                     console.log('No matching history documents.');
                     return;
@@ -235,42 +237,26 @@ exports.habitRepeat = async (req, res) => {
                 // map task into user id
                 historySnapshot.forEach(doc => {
                     const history = doc.data();
-                    const startOn = timestampToDate(history.startOn);
-                    const reminderArr = history.reminder.split(" ");
-                    const reminder = new Date(startOn);
-                    const duration = parseInt(reminderArr[0]);
-                    if (isNaN(duration)) {
-                        return;
+                    let body = ''
+                    if (history?.habit) {
+                        body = history.habit + ' starting now. Step closer to a better self'
                     }
-                    if (reminderArr[1] === "minute") {
-                        reminder.setMinutes(reminder.getMinutes() - duration);
-                    } else if (reminderArr[1] === "hour") {
-                        reminder.setHours(reminder.getHours() - duration);
-                    }
-                    reminder.setMilliseconds(0);
-                    reminder.setSeconds(0);
-                    const today = new Date(Today);
-                    today.setMilliseconds(0);
-                    today.setSeconds(0);
-                    if (reminder.getTime() !== today.getTime()) {
-                        return;
-                    }
-                    uids[history.uid] = history;
-                });
-
-                // get parent id
-                const guardianSnapshot = await firestore.collection('parent_child').where('childId', 'in', Object.keys(uids)).get();
-                if (guardianSnapshot.empty) {
-                    console.log('No matching parent documents.');
-                    return;
-                }
-                // map habit to user token
-                userSnapshot.forEach(doc => {
-                    const user = doc.data();
-                    if (user.token && uids[doc.id] && uids[doc.id].habitId) {
+                    const title = "It's time for habit!"
+                    if (history?.user?.token) {
                         sendBatchMessage({
-                            notification: { title: `It's time for habit!`, body: uids[doc.id].habit },
-                            tokens: user.token
+                            notification: { title, body },
+                            tokens: history.user.token
+                        });
+                    }
+                    const guardians = history?.user?.connections;
+                    if (guardians && guardians.length) {
+                        guardians.forEach(user => {
+                            if (user?.token) {
+                                sendBatchMessage({
+                                    notification: { title, body },
+                                    tokens: user.token
+                                });
+                            }
                         });
                     }
                 });
@@ -288,20 +274,22 @@ exports.habitRepeat = async (req, res) => {
                     const history = doc.data();
                     const guardians = history?.user?.connections;
                     const isNotifyChild = true;
+                    const title = `Hooray!`;
+                    const body = history.habit + ' habit has been completed.';
                     if (guardians && guardians.length) {
                         guardians.forEach(user => {
                             if (user.uid === history.completedBy) {
                                 isNotifyChild = true;
                             } else if (user?.token) {
                                 sendBatchMessage({
-                                    notification: { title: `Hooray!`, body: history.habit + ' habit has been completed.' },
+                                    notification: { title, body },
                                     tokens: user.token
                                 });
                             }
                         });
                         if (isNotifyChild && habit?.user?.token) {
                             sendBatchMessage({
-                                notification: { title: `Hooray!`, body: history.habit + ' habit has been completed. Keep it up!' },
+                                notification: { title, body: body + ' Keep it up!' },
                                 tokens: habit.user.token
                             });
                         }
