@@ -79,11 +79,12 @@ const parseToNum = (str, _default = 0) => {
 }
 
 const getHistoryData = habit => {
-    const { perDay } = habit;
-    const timesADay = parseToNum(habit.timesADay);
-    const perDayNum = parseToNum(habit.perDayNum);
+    const { repeat } = habit;
+    const { perDay } = repeat
+    const timesADay = parseToNum(repeat.timesADay);
+    const perDayNum = parseToNum(repeat.perDayNum);
 
-    const latestDate = timestampToDate(habit.latestDate || habit.startOn);
+    const latestDate = timestampToDate(habit.latest_Date || repeat.startOn);
 
     // add to habit list if repeat day is today
     if (!isRepeatToday(habit)) return [];
@@ -96,7 +97,10 @@ const getHistoryData = habit => {
 
     // return array of 1 object if it is only 1 time
     if (timesADay <= 1) {
-        return [{ ...habit, startOn: newStartOn }];
+        return [{
+            ...habit,
+            repeat: { ...repeat, startOn: newStartOn }
+        }];
     }
 
     // multiple times a day, update the hour and minute
@@ -112,16 +116,20 @@ const getHistoryData = habit => {
 
         // avoid duplicate
         if (latestDate.getTime() < newStartOn.getTime()) {
-            arr.push({ ...habit, startOn: newStartOn });
+            arr.push({
+                ...habit,
+                repeat: { ...repeat, startOn: newStartOn }
+            });
         }
     }
     return arr;
 }
 
 const isRepeatToday = habit => {
+    const { repeat } = habit
 
-    const { every, weekday = [] } = habit;
-    const everyNum = parseToNum(habit.everyNum);
+    const { every, weekday = [] } = repeat;
+    const everyNum = parseToNum(repeat.everyNum);
 
     let repeatDays = everyNum;
     if (every === 'week') {
@@ -129,7 +137,7 @@ const isRepeatToday = habit => {
     }
 
     // only check for date. so set time to 0
-    const latestDate = timestampToDate(habit.latestDate || habit.startOn);
+    const latestDate = timestampToDate(habit.latestDate || repeat.startOn);
     latestDate.setHours(0,0,0,0);
 
     const today0 = new Date(Today);
@@ -138,7 +146,7 @@ const isRepeatToday = habit => {
     // if repeat every week, it is not exactly 14days
     // check weekday if today falls on the list
     if (every === 'week') {
-        const startOn = timestampToDate(habit.startOn);
+        const startOn = timestampToDate(repeat.startOn);
         const startWeekday = startOn.getDay();
         const todayWeekday = Today.getDay();
 
@@ -183,7 +191,7 @@ exports.habitRepeat = async (req, res) => {
                 }
 
                 // get all habit
-                const habitSnapshot = await firestore.collection('habit').where('endDate', '>=', Today).get();
+                const habitSnapshot = await firestore.collection('habit').where('latestDate', '<=', Today).get();
                 if (habitSnapshot.empty) {
                     console.log('No matching documents.');
                     return;
@@ -212,9 +220,9 @@ exports.habitRepeat = async (req, res) => {
 
                 // update habit latestDate
                 for (const habitId in latestHabitDate) {
-                    const lastestDate = latestHabitDate[habitId].startOn;
+                    const lastestDate = latestHabitDate[habitId]?.repeat?.startOn;
                     if (lastestDate) {
-                        batchSet('habit', { lastestDate }, habitId);
+                        batchSet('habit', { ...latestHabitDate[habitId], lastestDate }, habitId);
                     }
                 }
 
@@ -319,7 +327,9 @@ exports.habitRepeat = async (req, res) => {
                 error: 'Not valid'
             });
         }
-    } catch(e) {
-        console.error(e);
+    } catch(error) {
+        return res.status(500).send({
+            error
+        });
     }
 };
