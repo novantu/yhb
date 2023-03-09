@@ -84,7 +84,7 @@ const getHistoryData = habit => {
     const timesADay = parseToNum(repeat.timesADay);
     const perDayNum = parseToNum(repeat.perDayNum);
 
-    const latestDate = timestampToDate(habit.latest_Date || repeat.startOn);
+    const latestDate = timestampToDate(habit.latestDate || repeat.startOn);
 
     // add to habit list if repeat day is today
     if (!isRepeatToday(habit)) return [];
