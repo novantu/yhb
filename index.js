@@ -159,7 +159,7 @@ const isRepeatToday = habit => {
         let isToday = false;
         weekday.forEach(w => {
             let date = new Date(latestDate);
-            if (startWeekday < w) {
+            if (startWeekday <= w) {
                 date.setDate(date.getDate() + repeatDays - startWeekday + w);
             } else {
                 date.setDate(date.getDate() + w);
