@@ -150,6 +150,7 @@ const isRepeatToday = habit => {
     if (every === 'week') {
         const startWeekday = latestDate.getDay();
         const todayWeekday = Today.getDay();
+        const lastOrStart = [0, 6].indexOf(startWeekday) > -1
 
         // today is not in the weekday list
         if (weekday.indexOf(todayWeekday) === -1) {
@@ -159,7 +160,7 @@ const isRepeatToday = habit => {
         let isToday = false;
         weekday.forEach(w => {
             let date = new Date(latestDate);
-            if (startWeekday <= w) {
+            if ((lastOrStart && startWeekday == w) || startWeekday < w) {
                 date.setDate(date.getDate() + repeatDays - startWeekday + w);
             } else {
                 date.setDate(date.getDate() + w);
