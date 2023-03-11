@@ -85,6 +85,7 @@ const getHistoryData = habit => {
     const perDayNum = parseToNum(repeat.perDayNum);
 
     const latestDate = timestampToDate(habit.latestDate || repeat.startOn);
+    const startOn = timestampToDate(repeat.startOn)
 
     // add to habit list if repeat day is today
     if (!isRepeatToday(habit)) return [];
@@ -106,19 +107,20 @@ const getHistoryData = habit => {
     // multiple times a day, update the hour and minute
     const arr = [];
     for (let i = 0; i < timesADay; i++) {
+        let j = perDayNum * i
 
         // get the new history latestDate
         if (perDay === 'hour') {
-            newStartOn.setHours(latestDate.getHours() + perDayNum * i);
+            newStartOn.setHours(startOn.getHours() + j);
         } else {
-            newStartOn.setMinutes(latestDate.getMinutes() + perDayNum * i);
+            newStartOn.setMinutes(startOn.getMinutes() + j);
         }
 
         // avoid duplicate
         if (latestDate.getTime() < newStartOn.getTime()) {
             arr.push({
                 ...habit,
-                repeat: { ...repeat, startOn: newStartOn }
+                repeat: { ...repeat, startOn: new Date(newStartOn) }
             });
         }
     }
@@ -146,8 +148,7 @@ const isRepeatToday = habit => {
     // if repeat every week, it is not exactly 14days
     // check weekday if today falls on the list
     if (every === 'week') {
-        const startOn = timestampToDate(repeat.startOn);
-        const startWeekday = startOn.getDay();
+        const startWeekday = latestDate.getDay();
         const todayWeekday = Today.getDay();
 
         // today is not in the weekday list
@@ -155,14 +156,19 @@ const isRepeatToday = habit => {
             return false;
         }
 
-        const date = new Date(latestDate);
-        date.setHours(0,0,0,0);
-
         let isToday = false;
         weekday.forEach(w => {
-            date.setDate(date.getDate() + repeatDays - startWeekday + w);
+            let date = new Date(latestDate);
+            if (startWeekday < w) {
+                date.setDate(date.getDate() + repeatDays - startWeekday + w);
+            } else {
+                date.setDate(date.getDate() + w);
+            }
+            date.setHours(0,0,0,0);
             if (today0.getTime() === date.getTime()) {
                 isToday = true;
+            } else {
+                
             }
         });
         return isToday;
@@ -193,11 +199,9 @@ exports.habitRepeat = async (req, res) => {
                 // get all habit
                 const habitSnapshot = await firestore.collection('habit').where('latestDate', '<=', Today).get();
                 if (habitSnapshot.empty) {
-                    console.log('No matching documents.');
-                    return;
+                    return res.status(200).send({ ...data, result: `No matching documents.` });
                 }
 
-                const latestHabitDate = {};
                 habitSnapshot.forEach(doc => {
                     const habit = doc.data();
                     if (!habit) {
@@ -211,20 +215,18 @@ exports.habitRepeat = async (req, res) => {
                         const historyData = getHistoryData(habit);
                         if (historyData && historyData.length) {
                             historyData.forEach(history => {
-                                if (history) batchSet('history', { ...history, habitId: doc.id });
+                                if (history) {
+                                    batchSet('history', { ...history, habitId: doc.id });
+                                    // update habit latestDate
+                                    batchSet('habit', {
+                                        ...habit,
+                                        latestDate: history.repeat?.startOn
+                                    }, doc.id);
+                                }
                             });
-                            latestHabitDate[doc.id] = historyData[historyData.length - 1];
                         }
                     }
                 });
-
-                // update habit latestDate
-                for (const habitId in latestHabitDate) {
-                    const lastestDate = latestHabitDate[habitId]?.repeat?.startOn;
-                    if (lastestDate) {
-                        batchSet('habit', { ...latestHabitDate[habitId], lastestDate }, habitId);
-                    }
-                }
 
                 pushHistoryData();
 
